@@ -43,6 +43,10 @@ A World of Warcraft addon that lets you switch your burst combat potion (and its
 1. Open the settings panel and go to the Potion list
 2. Click **Add potion**, then type an item ID or Shift-click an item in your bags / chat
 
+## Acknowledgements
+
+Special thanks to **爆发药水切换 (BurstPotionSwitcher)** for the inspiration.
+
 ---
 
 # MiliUI 爆發藥水助手
@@ -90,6 +94,10 @@ A World of Warcraft addon that lets you switch your burst combat potion (and its
 
 1. 開啟設定面板，前往「藥水清單」
 2. 點擊 **新增藥水**，輸入物品 ID 或在背包／聊天中 Shift 點擊物品
+
+## 特別感謝
+
+特別感謝 **爆发药水切换 (BurstPotionSwitcher)** 給予的靈感與啟發。
 
 ---
 
