@@ -2,6 +2,16 @@ local addonName, ns = ...
 ns.L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 local L = ns.L
 
+ns.VERSION      = C_AddOns.GetAddOnMetadata(addonName, "Version") or "dev"
+ns.PREFIX_COLOR = "|cff4488FF"
+
+-- 設定分頁的 callback 派送用（Libs/Callbacks.lua 的 xpcall 處理器）。
+-- 訂閱者之間不能連坐，但也不能變成黑洞——照常轉給全域 errorhandler。
+function ns.ReportError(err)
+    local handler = geterrorhandler()
+    if handler then handler(err) end
+end
+
 --[[--------------------------------------------------------------------
   TAINT / SECRET-VALUE SAFETY MODEL
   --------------------------------------------------------------------
@@ -38,6 +48,14 @@ local DEFAULTS = {
     rightClickUse  = false,   -- right-click an icon to drink that potion directly
     showCooldown   = true,    -- show the potion cooldown swirl on the icons
     showItemTooltip = true,   -- show the normal item tooltip on hover
+    -- Mouseover fade (engine lives in Libs/MiliUISnap.lua). Off by default so
+    -- an upgrade never makes an existing player's bar go half-transparent.
+    -- Kept at the TOP level, not inside `bar`: InitDB wipes `bar` whenever the
+    -- position format version changes, and these are not position data.
+    -- NOTE: while the bar is snapped onto another one, the master bar's fade
+    -- settings win and both bars fade/light up together (user's call).
+    fadeEnabled    = false,
+    fadeAlpha      = 0.3,
     collapsed      = false,   -- bar shrunk to only the selected cell
     disabled       = false,   -- true = "don't use a potion" selected
     selectedItemID = nil,
@@ -82,7 +100,13 @@ function ns.InitDB()
 end
 
 function ns.GetDB()
-    return ns.db or ns.InitDB()
+    -- Re-init when the saved table was swapped out from under us: a DB read that
+    -- happens before the SavedVariables file is loaded would otherwise pin a
+    -- stale defaults-only table forever (settings then read as "all default").
+    if ns.db == nil or ns.db ~= MiliUI_BurstPotionHelperDB then
+        return ns.InitDB()
+    end
+    return ns.db
 end
 
 function ns.Print(msg)
@@ -528,7 +552,6 @@ f:SetScript("OnEvent", function(_, event, arg1)
         -- won't render child frames created during its own first OnShow (you'd
         -- have to click the subcategory a few times); pre-creating avoids that.
         if ns.RefreshSettingsList then ns.RefreshSettingsList() end
-        ns.Print(L.MSG_LOADED:format(ns.MACRO_LINE))
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- Fires after every loading screen, when GetInstanceInfo is reliable —
         -- the one place the environment context can change.
